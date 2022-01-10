@@ -121,7 +121,7 @@ function dumpTracksInfo(stream) {
   const tracks = stream.getTracks();
   tracks.forEach(track => {
     console.log("track: ", track);
-    weblog("<pre>Track Capabilities:\n" + JSON.stringify(track.getCapabilities(), null, 2) +
+    console.log("<pre>Track Capabilities:\n" + JSON.stringify(track.getCapabilities(), null, 2) +
       "\nTrack settings:\n" + JSON.stringify(track.getSettings(), null, 2) + 
       "\nTrack constraints:\n" + JSON.stringify(track.getConstraints(), null, 2) + "</pre>");
   });
@@ -141,14 +141,12 @@ function handleUserMedia(stream) {
       };
   });
   
-  
-
-	weblog('Add local stream.');
+	weblog("Add local stream, isInitiator=", isInitiator , ", isChannelReady=" , isChannelReady);
 
 	startButton.disabled = true;
 	stopButton.disabled = false;
 	sendMessage('got user media');
-	if (isInitiator && isChannelReady) {
+	if (isChannelReady) { //&& isInitiator
 		startCall();
 	}
 }
@@ -255,7 +253,7 @@ function sendMessage(message){
 ////////////////////////////////////////////////////
 // Channel negotiation trigger function
 function startCall() {
-  weblog('startCall: isStarted='+ isStarted + ", isChannelReady=" +  isChannelReady + ",isInitiator=" + isInitiator);
+  weblog('startCall: isStarted='+ isStarted + " ,isChannelReady=" +  isChannelReady + " ,isInitiator=" + isInitiator);
   if (isChannelReady) {
     if(!pc)
       pc = createPeerConnection();
@@ -269,7 +267,7 @@ function startCall() {
      
     isStarted = true;
     var state = pc.signalingState;
-    weblog("state=", state);
+    weblog("signal state: ", state);
     if(localStream && (!state || state == "stable")) {
       var tr = pc.getTransceivers()[0];
       tr.direction = "sendonly";
@@ -316,9 +314,6 @@ function getStatsFromPC(pc) {
       
       statsOutput += `<h2>Report: ${report.type}</h2>\n<strong>ID:</strong> ${report.id}<br>\n` +
                      `<strong>Timestamp:</strong> ${report.timestamp}<br>\n`;
-
-      // Now the statistics for this report; we intentially drop the ones we
-      // sorted to the top above
 
       Object.keys(report).forEach(statName => {
         if (statName !== "id" && statName !== "timestamp" && statName !== "type") {
@@ -375,23 +370,6 @@ function createPeerConnection() {
   return pc;
 }
 
-// Data channel management
-function sendData() {
-  var data = sendTextarea.value;
-  if(isInitiator) sendChannel.send(data);
-  else receiveChannel.send(data);
-  trace('Sent data: ' + data);
-}
-
-// Handlers...
-
-function gotReceiveChannel(event) {
-  trace('Receive Channel Callback');
-  receiveChannel = event.channel;
-  receiveChannel.onmessage = handleMessage;
-  receiveChannel.onopen = handleReceiveChannelStateChange;
-  receiveChannel.onclose = handleReceiveChannelStateChange;
-}
 
 function handleMessage(event) {
   weblog('Received message: ' + event.data);
@@ -434,16 +412,8 @@ function changeSdp(sessionDescription) {
   if (/VP8/i.test(strSdp)) {
     strSdp = strSdp.replace(/VP8/g, "H264");
   }
-  //strSdp = strSdp.replace(/profile-level-id=42e01f/g, "profile-level-id=640c1f");
+  
   return strSdp;
-  var tempArr = strSdp.split("\r\n");
-  var newArr = [];
-  for (let item of tempArr) {
-    if(!item.startsWith('a=extmap:')) newArr.push(item);
-  }
-
-  var newSdp = newArr.join('\r\n');
-  return newSdp;
  }
 
 // Success handler for both createOffer()
