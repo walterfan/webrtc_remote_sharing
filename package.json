@@ -1,0 +1,37 @@
+{
+    "name": "remote_screen_sharing",
+    "version": "0.1.0",
+    "description": "video_chat_demo",
+    "main": "screen_share_server.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified! Configure in package.json\" && exit 1",
+        "start": "nodemon screen_share_server.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/walterfan/webrtc_remote_sharing"
+    },
+    "keywords": [
+        "WebRTC"
+    ],
+    "author": "Walter Fam",
+    "license": "BSD",
+    "dependencies": {
+        "body-parser": "^1.18.3",
+        "express": "^4.16.3",
+        "log4js": "^6.3.0",
+        "moment": "^2.29.1",
+        "nc": "^0.0.0",
+        "node-static": "~0.7.11",
+        "nodemon": "^2.0.15",
+        "socket.io": "~3.0.4",
+        "sqlite3": "^4.2.0"
+    },
+    "bugs": {
+        "url": "https://github.com/walterfan/webrtc_remote_sharing/issues"
+    },
+    "homepage": "https://github.com/walterfan/webrtc_remote_sharing",
+    "devDependencies": {
+        "webrtc-adapter": "^7.7.1"
+    }
+}
