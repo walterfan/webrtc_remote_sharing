@@ -45,9 +45,12 @@ var getStatsTimerId;
 var statsCached = {};
 
 // Peer Connection ICE protocol configuration (either Firefox or Chrome)
-var pc_config = adapter.browserDetails.browser === 'firefox' ?
-  {'iceServers':[{'urls':'stun:www.hfrtc.top:3478'}]} : // IP address
-  {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]};
+var pc_config =  {'iceServers':[
+      {"url": "stun:stun.l.google.com:19302"}, 
+      {'url':'stun:stunserver.org'}, 
+      {'url':'stun:www.hfrtc.top:3478'}
+  ]
+};
 
 
 // Session Description Protocol constraints:
@@ -230,7 +233,7 @@ socket.on('message', function (message){
   }
 
   if( /offer|answer/i.test(message.type)) {
-    weblog(message.type, "SDP:<br/> ", parseSDP(message.sdp));
+    console.log(message.type, "SDP:<br/>\n ", parseSDP(message.sdp));
   }
 });
 
@@ -243,7 +246,7 @@ socket.on('message', function (message){
 // Send message to the other peer via the signalling server
 function sendMessage(message){
   if( /offer|answer/i.test(message.type)) {
-    weblog(message.type, " SDP:<br/>", parseSDP(message.sdp));
+    console.log(message.type, " SDP:<br/>\n", parseSDP(message.sdp));
   }
 
   weblog('Sending message: <pre>' + JSON.stringify(message, null, 2) + "</pre>");
@@ -327,7 +330,8 @@ function getStatsFromPC(pc) {
 }
 
 function onIceConnectionChange(event) {
-
+  weblog("iceConnectionState=", event.target.iceConnectionState);
+  console.log("onIceConnectionChange, event=", event);
   if (/\bconnected|completed/i.test(event.target.iceConnectionState)) {
     if (getStatsTimerId) {
       weblog("clear timerId:", getStatsTimerId);
@@ -358,6 +362,13 @@ function createPeerConnection() {
     pc.onaddstream = handleRemoteStreamAdded;
     pc.onremovestream = handleRemoteStreamRemoved;
     pc.oniceconnectionstatechange = onIceConnectionChange;
+
+    pc.addEventListener("signalingstatechange", event => {
+      var sigState = event.target.signalingState;
+      var iceState = event.target.iceConnectionState;
+      var iceGathState = event.target.iceGatheringState;
+      weblog("signalingState=", sigState, ", iceConnectionState=", iceState, ", iceGathState=", iceGathState);
+    });
 
     weblog('Created RTCPeerConnnection with:\n' +
       '  config: \'' + JSON.stringify(pc_config) + '\'\n');
